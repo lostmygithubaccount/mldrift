@@ -20,7 +20,7 @@ jobs:
       run: |
         python3 -m build
         python3 -m twine upload --repository testpypi dist/* \
-          -u __token__
+          -u TOKEN
           -p ${{secrets.PYPI_TEST_TOKEN}}
     - name: release to PyPi
       run: echo "here"
