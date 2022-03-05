@@ -4,3 +4,7 @@ def detect():
 
 def run():
     detect()
+
+
+def released():
+    print("test automated release")
