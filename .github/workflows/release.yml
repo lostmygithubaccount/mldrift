@@ -1,0 +1,27 @@
+name: release
+on:
+  workflow_dispatch:
+  push: 
+    branches:
+      - releases/current
+jobs:
+  build:
+    runs-on: ubuntu-latest 
+    steps:
+    - name: check out repo
+      uses: actions/checkout@v2
+    - name: setup python
+      uses: actions/setup-python@v2
+      with: 
+        python-version: "3.9"
+    - name: pip install
+      run: pip install -r requirements-dev.txt
+    - name: release to test PyPi
+      run: |
+        python3 -m build
+        python3 -m twine upload --repository testpypi dist/* \
+          -u __token__
+          -p ${{secrets.PYPI_TEST_TOKEN}}
+    - name: release to PyPi
+      run: echo "here"
+

@@ -1,3 +1,4 @@
-black
-flake8
-pre-commit
+twine # build/release package
+black # code formatting
+flake8 # code style
+pre-commit # pre-commit hooks
