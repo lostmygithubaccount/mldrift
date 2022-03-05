@@ -1,4 +1,8 @@
-twine # build/release package
-black # code formatting
-flake8 # code style
-pre-commit # pre-commit hooks
+# build/release package
+twine
+setuptools
+
+# code formatting and style
+pre-commit
+black
+flake8
