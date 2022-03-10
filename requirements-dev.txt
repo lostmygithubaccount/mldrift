@@ -1,5 +1,6 @@
 # build/release package
 build
+wheel
 twine
 setuptools
 
