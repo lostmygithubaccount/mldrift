@@ -7,4 +7,3 @@ setuptools
 # code formatting and style
 pre-commit
 black[jupyter]
-flake8
