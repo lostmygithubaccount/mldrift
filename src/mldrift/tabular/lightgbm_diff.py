@@ -28,6 +28,7 @@ from enum import Enum
 from scipy.stats import energy_distance
 from scipy.stats import wasserstein_distance
 
+
 # TODO - fix this hack
 def get_distributions(pd_dataset, decimal=3):
     distributions = []
