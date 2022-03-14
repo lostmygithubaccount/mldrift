@@ -17,25 +17,52 @@ from azureml.core import Datastore
 from azureml.data import _dataset_diff as dsd
 from azureml.datadrift._logging._telemetry_logger import _TelemetryLogger
 from azureml.datadrift._utils.constants import (
-    DATADRIFT_TYPE_DATASET, RUN_TYPE_KEY, RUN_TYPE_ADHOC,
-    HAS_DRIFT, COLUMN_NAME, DEBUG_DATASHIFT_MCC_ALL,
-    DEBUG_DATASHIFT_MCC_TEST, DEBUG_DATASHIFT_MCC_TRAIN, DRIFT_THRESHOLD,
-    DRIFT_MAGNITUDE_TITLE, DRIFT_CONTRIBUTION_TITLE, Y_LABEL_PERCENTAGE,
-    METRIC_COLUMN_METRICS, METRIC_DATASET_METRICS,
-    METRIC_DATASHIFT_FEATURE_IMPORTANCE, METRIC_DATASHIFT_MCC_ALL,
-    METRIC_DATASHIFT_MCC_TEST, METRIC_DATASHIFT_MCC_TRAIN,
-    METRIC_SCHEMA_VERSION_DFT, METRIC_SCHEMA_VERSION_KEY, METRIC_TYPE, METRIC_TYPE_COLUMN,
-    METRIC_TYPE_DATASET, OUTPUT_METRIC_DRIFT_COEFFICIENT, OUTPUT_METRIC_DRIFT_CONTRIBUTION,
-    METRIC_FROM_DATASET, METRIC_FROM_DATASET_BOTH, PIPELINE_START_TIME, RUN_ID, SCORING_DATE,
-    DUMMY_SERVICE, TGT_DST_START_DATE, TGT_DST_END_DATE,
-    KEY_NAME_Drift_TYPE, KEY_NAME_BASE_DATASET_ID, KEY_NAME_TARGET_DATASET_ID)
+    DATADRIFT_TYPE_DATASET,
+    RUN_TYPE_KEY,
+    RUN_TYPE_ADHOC,
+    HAS_DRIFT,
+    COLUMN_NAME,
+    DEBUG_DATASHIFT_MCC_ALL,
+    DEBUG_DATASHIFT_MCC_TEST,
+    DEBUG_DATASHIFT_MCC_TRAIN,
+    DRIFT_THRESHOLD,
+    DRIFT_MAGNITUDE_TITLE,
+    DRIFT_CONTRIBUTION_TITLE,
+    Y_LABEL_PERCENTAGE,
+    METRIC_COLUMN_METRICS,
+    METRIC_DATASET_METRICS,
+    METRIC_DATASHIFT_FEATURE_IMPORTANCE,
+    METRIC_DATASHIFT_MCC_ALL,
+    METRIC_DATASHIFT_MCC_TEST,
+    METRIC_DATASHIFT_MCC_TRAIN,
+    METRIC_SCHEMA_VERSION_DFT,
+    METRIC_SCHEMA_VERSION_KEY,
+    METRIC_TYPE,
+    METRIC_TYPE_COLUMN,
+    METRIC_TYPE_DATASET,
+    OUTPUT_METRIC_DRIFT_COEFFICIENT,
+    OUTPUT_METRIC_DRIFT_CONTRIBUTION,
+    METRIC_FROM_DATASET,
+    METRIC_FROM_DATASET_BOTH,
+    PIPELINE_START_TIME,
+    RUN_ID,
+    SCORING_DATE,
+    DUMMY_SERVICE,
+    TGT_DST_START_DATE,
+    TGT_DST_END_DATE,
+    KEY_NAME_Drift_TYPE,
+    KEY_NAME_BASE_DATASET_ID,
+    KEY_NAME_TARGET_DATASET_ID,
+)
 
 from azureml.datadrift._utils.parameter_validator import ParameterValidator
 
 module_logger = _TelemetryLogger.get_telemetry_logger(__name__)
 
 
-def _all_outputs(datadriftdetector, start_time, end_time, run_id=None, activity_logger=None):
+def _all_outputs(
+    datadriftdetector, start_time, end_time, run_id=None, activity_logger=None
+):
     """Get a tuple of the drift results and metrics in a given time window.
 
         .. remarks::
@@ -94,51 +121,107 @@ def _all_outputs(datadriftdetector, start_time, end_time, run_id=None, activity_
 
     # Filter based on input params
     if run_id:
-        metrics_got = _get_metrics(datadriftdetector, start_time, end_time, run_id,
-                                   daily_latest_only=False, logger=logger)
-        metrics_valid = [m for m in metrics_got if _properties(m.get_extended_properties())[RUN_ID] == run_id]
+        metrics_got = _get_metrics(
+            datadriftdetector,
+            start_time,
+            end_time,
+            run_id,
+            daily_latest_only=False,
+            logger=logger,
+        )
+        metrics_valid = [
+            m
+            for m in metrics_got
+            if _properties(m.get_extended_properties())[RUN_ID] == run_id
+        ]
         if len(metrics_valid) < 1:
-            msg = "No result found for run id query. Please make sure {} a valid run id.".format(run_id)
+            msg = "No result found for run id query. Please make sure {} a valid run id.".format(
+                run_id
+            )
             logger.error(msg)
             raise ValueError(msg)
         else:
-            logger.debug("Run id results found. Total {} records for run id {}.".format(len(metrics_valid), run_id))
+            logger.debug(
+                "Run id results found. Total {} records for run id {}.".format(
+                    len(metrics_valid), run_id
+                )
+            )
     # if run_id is None, pick only scheduled runs' results
     else:
-        metrics_got = _get_metrics(datadriftdetector, start_time, end_time, run_id,
-                                   daily_latest_only=True, logger=logger)
+        metrics_got = _get_metrics(
+            datadriftdetector,
+            start_time,
+            end_time,
+            run_id,
+            daily_latest_only=True,
+            logger=logger,
+        )
         if len(metrics_got) < 1:
-            logger.error("No resoults found for scheduled/backfill runs. All results are from adhoc runs.")
-            raise FileNotFoundError("No resoults found for scheduled/backfill runs. All results are from adhoc runs.")
+            logger.error(
+                "No resoults found for scheduled/backfill runs. All results are from adhoc runs."
+            )
+            raise FileNotFoundError(
+                "No resoults found for scheduled/backfill runs. All results are from adhoc runs."
+            )
         else:
 
-            logger.debug("Results found for scheduled/backfill runs. Filtered in {} records.".format(len(metrics_got)))
+            logger.debug(
+                "Results found for scheduled/backfill runs. Filtered in {} records.".format(
+                    len(metrics_got)
+                )
+            )
 
         # Filter in given time range, only for schedule runs, if input run_id only, then no need to check time range.
         if drift_type == DATADRIFT_TYPE_DATASET:
-            metrics_valid = [m for m in metrics_got
-                             if (start_time <= _properties(m.get_extended_properties())[TGT_DST_START_DATE] <= end_time
-                                 or start_time <= _properties(m.get_extended_properties())
-                                 [TGT_DST_END_DATE] <= end_time)]
+            metrics_valid = [
+                m
+                for m in metrics_got
+                if (
+                    start_time
+                    <= _properties(m.get_extended_properties())[
+                        TGT_DST_START_DATE
+                    ]
+                    <= end_time
+                    or start_time
+                    <= _properties(m.get_extended_properties())[
+                        TGT_DST_END_DATE
+                    ]
+                    <= end_time
+                )
+            ]
         else:
             metrics_valid = metrics_got
 
         if len(metrics_valid) < 1:
-            msg = "Results found but not in given time range. Given time range: [{}, {}].".format(start_time, end_time)
+            msg = "Results found but not in given time range. Given time range: [{}, {}].".format(
+                start_time, end_time
+            )
             logger.error(msg)
             raise ValueError(msg)
         else:
-            logger.debug("Valid results found in given time range. Filtered in {} records between [{}, {}].".
-                         format(len(metrics_valid), start_time, end_time))
+            logger.debug(
+                "Valid results found in given time range. Filtered in {} records between [{}, {}].".format(
+                    len(metrics_valid), start_time, end_time
+                )
+            )
 
-    return _build_results(drift_type, metrics_valid), _build_metrics(drift_type, metrics_valid)
+    return _build_results(drift_type, metrics_valid), _build_metrics(
+        drift_type, metrics_valid
+    )
 
 
 # To avoid massive downloading:
 # For output of specific run id, check if file name includes run id
 # For output in a time range, add start_time / end_time
-def _get_metrics(datadriftdetector, start_time, end_time, run_id,
-                 daily_latest_only=True, with_adhoc=False, logger=None):
+def _get_metrics(
+    datadriftdetector,
+    start_time,
+    end_time,
+    run_id,
+    daily_latest_only=True,
+    with_adhoc=False,
+    logger=None,
+):
     """
 
     :param datadriftdetector:
@@ -171,8 +254,15 @@ def _get_metrics(datadriftdetector, start_time, end_time, run_id,
     latest_pipeline_times = {}
 
     if drift_type == DATADRIFT_TYPE_DATASET:
-        metrics, latest_pipeline_times = _download_from_blob_metrics(datadriftdetector, local_temp_root,
-                                                                     start_time, end_time, run_id, with_adhoc, logger)
+        metrics, latest_pipeline_times = _download_from_blob_metrics(
+            datadriftdetector,
+            local_temp_root,
+            start_time,
+            end_time,
+            run_id,
+            with_adhoc,
+            logger,
+        )
     else:
         return None
 
@@ -186,19 +276,33 @@ def _get_metrics(datadriftdetector, start_time, end_time, run_id,
     if daily_latest_only is True:
         # daily_latest_only is True means retrieving scheduled/backfill runs only, therefore filter out adhoc runs.
         if with_adhoc is False:
-            metrics = [m for m in metrics if m.extended_properties[RUN_TYPE_KEY] != RUN_TYPE_ADHOC]
+            metrics = [
+                m
+                for m in metrics
+                if m.extended_properties[RUN_TYPE_KEY] != RUN_TYPE_ADHOC
+            ]
 
         if len(metrics) > 0:
             # then pick only latest outputs for each target date.
             if len(latest_pipeline_times) > 0:
                 ondate = TGT_DST_START_DATE
-                metrics = [m for m in metrics
-                           if m.extended_properties[PIPELINE_START_TIME] == latest_pipeline_times
-                           [did]
-                           [m.extended_properties[ondate]]]
-            logger.debug("Results of Scheduled/backfill runs dedupled. Got {} latest records.".format(len(metrics)))
+                metrics = [
+                    m
+                    for m in metrics
+                    if m.extended_properties[PIPELINE_START_TIME]
+                    == latest_pipeline_times[did][
+                        m.extended_properties[ondate]
+                    ]
+                ]
+            logger.debug(
+                "Results of Scheduled/backfill runs dedupled. Got {} latest records.".format(
+                    len(metrics)
+                )
+            )
         else:
-            error_msg = "No Scheduled/backfill run outputs found. Time range: {} to {}.".format(start_time, end_time)
+            error_msg = "No Scheduled/backfill run outputs found. Time range: {} to {}.".format(
+                start_time, end_time
+            )
             logger.error(error_msg)
             raise FileNotFoundError(error_msg)
 
@@ -231,12 +335,23 @@ def _get_metrics(datadriftdetector, start_time, end_time, run_id,
     # thus empty temp folder to ensure new contents will be downloaded in each running.
     shutil.rmtree(local_temp_root, ignore_errors=True)
 
-    logger.debug("Valid deduped results found in raw diff outputs. Return {} records.".format(len(metrics)))
+    logger.debug(
+        "Valid deduped results found in raw diff outputs. Return {} records.".format(
+            len(metrics)
+        )
+    )
     return metrics
 
 
-def _download_from_blob_metrics(datadriftdetector, local_temp_root, start_time, end_time, run_id,
-                                with_adhoc, logger):
+def _download_from_blob_metrics(
+    datadriftdetector,
+    local_temp_root,
+    start_time,
+    end_time,
+    run_id,
+    with_adhoc,
+    logger,
+):
     data_store = Datastore.get_default(datadriftdetector.workspace)
     drift_type = datadriftdetector.drift_type
     datadrift_id = datadriftdetector._id
@@ -256,40 +371,67 @@ def _download_from_blob_metrics(datadriftdetector, local_temp_root, start_time, 
     service_name = datadrift_id
     latest_pipeline_times[service_name] = {}
 
-    metrics_rel_base = _get_metrics_path(drift_type=drift_type, datadrift_id=datadrift_id,
-                                         datastore=data_store, logger=logger)
+    metrics_rel_base = _get_metrics_path(
+        drift_type=drift_type,
+        datadrift_id=datadrift_id,
+        datastore=data_store,
+        logger=logger,
+    )
 
-    logger.info("Relative metrics path confirmed. Drift id = {}, path = {}".format(datadrift_id, metrics_rel_base))
+    logger.info(
+        "Relative metrics path confirmed. Drift id = {}, path = {}".format(
+            datadrift_id, metrics_rel_base
+        )
+    )
 
-    logger.info("Looking for results. blob = {}, container = {}.".format(metrics_rel_base, data_store.container_name))
+    logger.info(
+        "Looking for results. blob = {}, container = {}.".format(
+            metrics_rel_base, data_store.container_name
+        )
+    )
 
     metrics_list = []
     # to avoid massive download, check all output json file lists with full path
     # (considering run id based query could be in random day so have to retrive all output file list)
     # if it's for a specific run id, just pick file name contains this run id and download it
     # if it's for a time range, then check yyyy/mm/dd in path and only download outputs in time range.
-    blob_list = data_store.blob_service.list_blobs(container_name=data_store.container_name, prefix=metrics_rel_base)
+    blob_list = data_store.blob_service.list_blobs(
+        container_name=data_store.container_name, prefix=metrics_rel_base
+    )
     if len(data_store._filter_conflicting_blobs(blob_list)) > 0:
         for f in blob_list:
             # find outputs of current datadrift
             # handle different separator to be aligned with metrics_rel_base
-            f_name = f.name.replace("\\", '/')
+            f_name = f.name.replace("\\", "/")
             if metrics_rel_base in f_name and f_name.endswith(".json"):
                 # get date from path
-                ymd_position = f_name.find(metrics_rel_base) + len(metrics_rel_base)
+                ymd_position = f_name.find(metrics_rel_base) + len(
+                    metrics_rel_base
+                )
                 dt_str = os.path.split(f_name[ymd_position:])[0]
-                dt = datetime.strptime(dt_str, '%Y/%m/%d')
+                dt = datetime.strptime(dt_str, "%Y/%m/%d")
                 # if it's a valid target, download it and add local path to metrics list
-                if (run_id and run_id in f.name) or (not run_id and start_time <= dt <= end_time):
-                    data_store.download(target_path=local_temp_root, prefix=f.name, show_progress=False)
-                    metrics_full_path = os.path.join(local_temp_root, *f_name.split('/'))
+                if (run_id and run_id in f.name) or (
+                    not run_id and start_time <= dt <= end_time
+                ):
+                    data_store.download(
+                        target_path=local_temp_root,
+                        prefix=f.name,
+                        show_progress=False,
+                    )
+                    metrics_full_path = os.path.join(
+                        local_temp_root, *f_name.split("/")
+                    )
                     metrics_list.append(metrics_full_path)
-        logger.info("Download list is ready. In total {} files under blob {} in container {}".
-                    format(len(metrics_list), metrics_rel_base, data_store.container_name))
+        logger.info(
+            "Download list is ready. In total {} files under blob {} in container {}".format(
+                len(metrics_list), metrics_rel_base, data_store.container_name
+            )
+        )
 
     count = 0
     for f in metrics_list:
-        with open(f, 'r') as metrics_json:
+        with open(f, "r") as metrics_json:
             data = metrics_json.read()
             metric = _decode_metric(data)
 
@@ -302,39 +444,69 @@ def _download_from_blob_metrics(datadriftdetector, local_temp_root, start_time, 
                     target_date = m.extended_properties[TGT_DST_START_DATE]
 
                 if target_date not in latest_pipeline_times[service_name]:
-                    latest_pipeline_times[service_name][target_date] = datetime.min
+                    latest_pipeline_times[service_name][
+                        target_date
+                    ] = datetime.min
 
-                if PIPELINE_START_TIME in m.extended_properties \
-                        and m.extended_properties[PIPELINE_START_TIME] > \
-                        latest_pipeline_times[service_name][target_date]:
-                    run_type = m.extended_properties[RUN_TYPE_KEY] if RUN_TYPE_KEY in m.extended_properties \
+                if (
+                    PIPELINE_START_TIME in m.extended_properties
+                    and m.extended_properties[PIPELINE_START_TIME]
+                    > latest_pipeline_times[service_name][target_date]
+                ):
+                    run_type = (
+                        m.extended_properties[RUN_TYPE_KEY]
+                        if RUN_TYPE_KEY in m.extended_properties
                         else RUN_TYPE_ADHOC
-                    if with_adhoc is True or (with_adhoc is False and run_type != RUN_TYPE_ADHOC):
-                        latest_pipeline_times[service_name][target_date] = m.extended_properties[PIPELINE_START_TIME]
-                        logger.info("Update latest pipeline time. For date {}, latest pipeline time is {}. Ahdoc {}.".
-                                    format(target_date, m.extended_properties[PIPELINE_START_TIME], with_adhoc))
+                    )
+                    if with_adhoc is True or (
+                        with_adhoc is False and run_type != RUN_TYPE_ADHOC
+                    ):
+                        latest_pipeline_times[service_name][
+                            target_date
+                        ] = m.extended_properties[PIPELINE_START_TIME]
+                        logger.info(
+                            "Update latest pipeline time. For date {}, latest pipeline time is {}. Ahdoc {}.".format(
+                                target_date,
+                                m.extended_properties[PIPELINE_START_TIME],
+                                with_adhoc,
+                            )
+                        )
 
     # found metrics (before filtering by time range or run id)
     if count > 0:
-        logger.debug("Download done. Before applying filters, downloaded {} rows of data diff results under path {}."
-                     .format(count, metrics_rel_base))
+        logger.debug(
+            "Download done. Before applying filters, downloaded {} rows of data diff results under path {}.".format(
+                count, metrics_rel_base
+            )
+        )
     # find nothing, which means no files on blob storage, means outputs were not generated.
     else:
-        error_msg = "No metrics output found in container without applying any filter. " \
-                    "blob = {}, container = {}. ".format(metrics_rel_base, data_store.container_name)
+        error_msg = (
+            "No metrics output found in container without applying any filter. "
+            "blob = {}, container = {}. ".format(
+                metrics_rel_base, data_store.container_name
+            )
+        )
 
         if run_id:
             error_msg += "For run id {} and ".format(run_id)
         else:
-            error_msg += "In given time range [{} ... {}] for ".format(start_time, end_time)
+            error_msg += "In given time range [{} ... {}] for ".format(
+                start_time, end_time
+            )
 
         if drift_type == DATADRIFT_TYPE_DATASET:
-            error_msg += "dataset based drift detector {} base dataset: {} and target dataset: {}.".\
-                format(datadrift_id, baseline_dataset_id, target_dataset_id)
+            error_msg += "dataset based drift detector {} base dataset: {} and target dataset: {}.".format(
+                datadrift_id, baseline_dataset_id, target_dataset_id
+            )
 
         if latest_run_time:
-            error_msg += " Given latest run accomplished at {}, please check run details see if data of target dates" \
-                         " are processed by the run, or if the run failed.".format(latest_run_time)
+            error_msg += (
+                " Given latest run accomplished at {}, please check run details see if data of target dates"
+                " are processed by the run, or if the run failed.".format(
+                    latest_run_time
+                )
+            )
         else:
             error_msg = " Run history is empty, please accomplish at lease one run before retrieving outputs."
             raise FileNotFoundError(error_msg)
@@ -347,7 +519,13 @@ def _download_from_blob_metrics(datadriftdetector, local_temp_root, start_time, 
 
 # To be compatible, set default value of drift type as None, then SDK will be able to know if invocation is from
 # older version '_generate_script.py'. It will always go to datadrift_id path.
-def _get_metrics_path(target_date=None, drift_type=None, datadrift_id=None, datastore=None, logger=None):
+def _get_metrics_path(
+    target_date=None,
+    drift_type=None,
+    datadrift_id=None,
+    datastore=None,
+    logger=None,
+):
     """Get the metric path for a given drift type, instance target date and frequency of diff.
 
     :param service: datastore instance
@@ -362,29 +540,47 @@ def _get_metrics_path(target_date=None, drift_type=None, datadrift_id=None, data
 
     # validate folder exists in blob storage
     if datastore:
-        blobs = datastore.blob_service.list_blobs(container_name=datastore.container_name, prefix=metrics_output_path)
+        blobs = datastore.blob_service.list_blobs(
+            container_name=datastore.container_name, prefix=metrics_output_path
+        )
         blobs = datastore._filter_conflicting_blobs(blobs)
         if len(blobs) == 0:
             if logger:
-                logger.error("Get output path failed. Container = {}, prefix = {}, drift id = {}".
-                             format(datastore.container_name, metrics_output_path, datadrift_id))
+                logger.error(
+                    "Get output path failed. Container = {}, prefix = {}, drift id = {}".format(
+                        datastore.container_name,
+                        metrics_output_path,
+                        datadrift_id,
+                    )
+                )
 
             return metrics_output_path
 
     if target_date is not None:
-        metrics_output_path += "{}/".format(target_date.strftime('%Y/%m/%d'))
+        metrics_output_path += "{}/".format(target_date.strftime("%Y/%m/%d"))
 
     return metrics_output_path
 
 
 def _extended_property_datetime_from_str(extended_property):
-    datetime_string_formats = ["%Y-%m-%dT%H:%M:%S.%fZ", "%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%d"]
-    datetime_keys = [SCORING_DATE, PIPELINE_START_TIME, TGT_DST_START_DATE, TGT_DST_END_DATE]
+    datetime_string_formats = [
+        "%Y-%m-%dT%H:%M:%S.%fZ",
+        "%Y-%m-%dT%H:%M:%SZ",
+        "%Y-%m-%d",
+    ]
+    datetime_keys = [
+        SCORING_DATE,
+        PIPELINE_START_TIME,
+        TGT_DST_START_DATE,
+        TGT_DST_END_DATE,
+    ]
     for k in datetime_keys:
         if k in extended_property and isinstance(extended_property[k], str):
             for fmr in datetime_string_formats:
                 try:
-                    extended_property[k] = datetime.strptime(extended_property[k], fmr)
+                    extended_property[k] = datetime.strptime(
+                        extended_property[k], fmr
+                    )
                     break
                 except ValueError:
                     pass
@@ -392,7 +588,7 @@ def _extended_property_datetime_from_str(extended_property):
 
 
 def _decode_metric(json):
-    """ decode json into Metric object.
+    """decode json into Metric object.
 
     :param json:
     :return:
@@ -423,15 +619,25 @@ def _build_single_result_content(drift_type, value, extended_properties):
     :param extended_properties: extended properties includes information such as scoring time, dataset id...
     :return: result dict.
     """
-    result_content = {HAS_DRIFT: value > extended_properties[DRIFT_THRESHOLD],
-                      DRIFT_THRESHOLD: extended_properties[DRIFT_THRESHOLD]}
+    result_content = {
+        HAS_DRIFT: value > extended_properties[DRIFT_THRESHOLD],
+        DRIFT_THRESHOLD: extended_properties[DRIFT_THRESHOLD],
+    }
 
     # TODO: move strings to constants before check in
     if drift_type == DATADRIFT_TYPE_DATASET:
-        result_content[TGT_DST_START_DATE] = extended_properties[TGT_DST_START_DATE]
-        result_content[TGT_DST_END_DATE] = extended_properties[TGT_DST_END_DATE]
-        result_content[KEY_NAME_BASE_DATASET_ID] = extended_properties[KEY_NAME_BASE_DATASET_ID]
-        result_content[KEY_NAME_TARGET_DATASET_ID] = extended_properties[KEY_NAME_TARGET_DATASET_ID]
+        result_content[TGT_DST_START_DATE] = extended_properties[
+            TGT_DST_START_DATE
+        ]
+        result_content[TGT_DST_END_DATE] = extended_properties[
+            TGT_DST_END_DATE
+        ]
+        result_content[KEY_NAME_BASE_DATASET_ID] = extended_properties[
+            KEY_NAME_BASE_DATASET_ID
+        ]
+        result_content[KEY_NAME_TARGET_DATASET_ID] = extended_properties[
+            KEY_NAME_TARGET_DATASET_ID
+        ]
 
     return result_content
 
@@ -455,7 +661,9 @@ def _build_results(drift_type, raw_metrics):
 
                 # attach result content
                 result_list = []
-                result_list.append(_build_single_result_content(drift_type, metric.value, ep))
+                result_list.append(
+                    _build_single_result_content(drift_type, metric.value, ep)
+                )
                 res["result"] = result_list
 
                 results.append(res)
@@ -471,22 +679,28 @@ def _create_metric_dict(drift_type, metric):
     :rtype: dict()
     """
     ep = _properties(metric.get_extended_properties())
-    _metric = {'name': metric.name, 'value': metric.value}
+    _metric = {"name": metric.name, "value": metric.value}
 
     # general items
-    metric_dict = {METRIC_SCHEMA_VERSION_KEY: metric.schema_version} if hasattr(metric, 'schema_version') else {}
+    metric_dict = (
+        {METRIC_SCHEMA_VERSION_KEY: metric.schema_version}
+        if hasattr(metric, "schema_version")
+        else {}
+    )
 
     # drift type sensitive items
     if drift_type == DATADRIFT_TYPE_DATASET:
         metric_dict[TGT_DST_START_DATE] = ep[TGT_DST_START_DATE]
         metric_dict[TGT_DST_END_DATE] = ep[TGT_DST_END_DATE]
         metric_dict[KEY_NAME_BASE_DATASET_ID] = ep[KEY_NAME_BASE_DATASET_ID]
-        metric_dict[KEY_NAME_TARGET_DATASET_ID] = ep[KEY_NAME_TARGET_DATASET_ID]
+        metric_dict[KEY_NAME_TARGET_DATASET_ID] = ep[
+            KEY_NAME_TARGET_DATASET_ID
+        ]
 
     # detail metrics
     # Use user friendly key without postfix such as "(Test)"
     if metric.name == METRIC_DATASHIFT_MCC_TEST:
-        _metric['name'] = OUTPUT_METRIC_DRIFT_COEFFICIENT
+        _metric["name"] = OUTPUT_METRIC_DRIFT_COEFFICIENT
 
     if ep[METRIC_TYPE] == METRIC_TYPE_DATASET:
         if METRIC_DATASET_METRICS not in metric_dict:
@@ -514,13 +728,23 @@ def _check_if_is_expected_metric(drift_type, output_metric, metric):
     """
     ep = _properties(metric.get_extended_properties())
 
-    is_exected_metric = (len(ep) > 0)
+    is_exected_metric = len(ep) > 0
 
     if is_exected_metric and drift_type == DATADRIFT_TYPE_DATASET:
-        is_exected_metric &= (output_metric[TGT_DST_START_DATE] == ep[TGT_DST_START_DATE])
-        is_exected_metric &= (output_metric[TGT_DST_END_DATE] == ep[TGT_DST_END_DATE])
-        is_exected_metric &= (output_metric[KEY_NAME_BASE_DATASET_ID] == ep[KEY_NAME_BASE_DATASET_ID])
-        is_exected_metric &= (output_metric[KEY_NAME_TARGET_DATASET_ID] == ep[KEY_NAME_TARGET_DATASET_ID])
+        is_exected_metric &= (
+            output_metric[TGT_DST_START_DATE] == ep[TGT_DST_START_DATE]
+        )
+        is_exected_metric &= (
+            output_metric[TGT_DST_END_DATE] == ep[TGT_DST_END_DATE]
+        )
+        is_exected_metric &= (
+            output_metric[KEY_NAME_BASE_DATASET_ID]
+            == ep[KEY_NAME_BASE_DATASET_ID]
+        )
+        is_exected_metric &= (
+            output_metric[KEY_NAME_TARGET_DATASET_ID]
+            == ep[KEY_NAME_TARGET_DATASET_ID]
+        )
 
     return is_exected_metric
 
@@ -542,24 +766,39 @@ def _build_metrics(drift_type, raw_metrics):
             if drift_type == DATADRIFT_TYPE_DATASET:
                 create_new_component = False
                 met_metric_exists = False
-                for output_metric in m['metrics']:
-                    if _check_if_is_expected_metric(drift_type, output_metric, metric):
-                        name_prefix = (ep[METRIC_FROM_DATASET] + "_") \
-                            if (METRIC_FROM_DATASET in ep and ep[METRIC_FROM_DATASET] != METRIC_FROM_DATASET_BOTH) \
+                for output_metric in m["metrics"]:
+                    if _check_if_is_expected_metric(
+                        drift_type, output_metric, metric
+                    ):
+                        name_prefix = (
+                            (ep[METRIC_FROM_DATASET] + "_")
+                            if (
+                                METRIC_FROM_DATASET in ep
+                                and ep[METRIC_FROM_DATASET]
+                                != METRIC_FROM_DATASET_BOTH
+                            )
                             else ""
-                        _metric = {'name': name_prefix + metric.name, 'value': metric.value}
+                        )
+                        _metric = {
+                            "name": name_prefix + metric.name,
+                            "value": metric.value,
+                        }
                         met_metric_exists = True
                         # Add to already existing metric dictionary
                         if ep[METRIC_TYPE] == METRIC_TYPE_DATASET:
                             if METRIC_DATASET_METRICS not in output_metric:
                                 output_metric[METRIC_DATASET_METRICS] = []
-                            output_metric[METRIC_DATASET_METRICS].append(_metric)
+                            output_metric[METRIC_DATASET_METRICS].append(
+                                _metric
+                            )
 
                         elif ep[METRIC_TYPE] == METRIC_TYPE_COLUMN:
                             column_in_metrics = False
                             if METRIC_COLUMN_METRICS not in output_metric:
                                 output_metric[METRIC_COLUMN_METRICS] = []
-                            for c_metric in output_metric[METRIC_COLUMN_METRICS]:
+                            for c_metric in output_metric[
+                                METRIC_COLUMN_METRICS
+                            ]:
                                 if ep[COLUMN_NAME] in c_metric:
                                     column_in_metrics = True
                                     column = c_metric[ep[COLUMN_NAME]]
@@ -567,11 +806,13 @@ def _build_metrics(drift_type, raw_metrics):
                             if not column_in_metrics:
                                 # Create column dict in column_metrics
                                 column_dict = {ep[COLUMN_NAME]: [_metric]}
-                                output_metric[METRIC_COLUMN_METRICS].append(column_dict)
+                                output_metric[METRIC_COLUMN_METRICS].append(
+                                    column_dict
+                                )
                 if not met_metric_exists:
                     # Add new metric in metrics list
                     metric_dict = _create_metric_dict(drift_type, metric)
-                    m['metrics'].append(metric_dict)
+                    m["metrics"].append(metric_dict)
 
         if create_new_component:
             # Add metrics service dict
@@ -580,12 +821,17 @@ def _build_metrics(drift_type, raw_metrics):
             metrics_list.append(metric_dict)
 
             metrics_component = {KEY_NAME_Drift_TYPE: drift_type}
-            metrics_component['metrics'] = metrics_list
+            metrics_component["metrics"] = metrics_list
             output_metrics.append(metrics_component)
     return output_metrics
 
 
-def _show(datadriftdetector, start_time=datetime.min, end_time=datetime.max, logger=None):
+def _show(
+    datadriftdetector,
+    start_time=datetime.min,
+    end_time=datetime.max,
+    logger=None,
+):
     """Show data drift trend in given time range.
 
     :param start_time:  Optional, start of presenting data time window in UTC, default is 0001-01-01 00:00:00
@@ -607,8 +853,15 @@ def _show(datadriftdetector, start_time=datetime.min, end_time=datetime.max, log
     # baseline_dataset_id = datadriftdetector._baseline_dataset_id
     # target_dataset_id = datadriftdetector._target_dataset_id
 
-    metrics = _get_metrics(datadriftdetector, start_time, end_time, run_id=None,
-                           daily_latest_only=True, with_adhoc=True, logger=logger)
+    metrics = _get_metrics(
+        datadriftdetector,
+        start_time,
+        end_time,
+        run_id=None,
+        daily_latest_only=True,
+        with_adhoc=True,
+        logger=logger,
+    )
 
     if len(metrics) == 0:
         raise FileNotFoundError("DataDrift results are unavailable.")
@@ -635,27 +888,42 @@ def _show(datadriftdetector, start_time=datetime.min, end_time=datetime.max, log
                 eddate = metric_ep[TGT_DST_END_DATE]
             # filtering rules:
             # For dataset based result, check if 'overlap' between target start/end date and input start/end time.
-            if start_time_valid <= stdate <= end_time_valid or start_time_valid <= eddate <= end_time_valid:
+            if (
+                start_time_valid <= stdate <= end_time_valid
+                or start_time_valid <= eddate <= end_time_valid
+            ):
                 found_nothing = False
                 if stdate not in contents[s]:
                     # insert also end date incase needed in future.
-                    contents[s][stdate] = {'eddate': eddate}
+                    contents[s][stdate] = {"eddate": eddate}
                 if metric_ep[METRIC_TYPE] == METRIC_TYPE_DATASET:
                     contents[s][stdate][m.name] = m.value
                 if metric_ep[METRIC_TYPE] == METRIC_TYPE_COLUMN:
                     if m.name not in contents[s][stdate]:
                         contents[s][stdate][m.name] = {}
-                    contents[s][stdate][m.name][metric_ep[COLUMN_NAME]] = m.value
+                    contents[s][stdate][m.name][
+                        metric_ep[COLUMN_NAME]
+                    ] = m.value
 
     if found_nothing is True:
-        logger.error("No available drift outputs found. (from {} to {}).".format(start_time, end_time))
-        raise ValueError("No available drift outputs found. (from {} to {}).".format(start_time, end_time))
+        logger.error(
+            "No available drift outputs found. (from {} to {}).".format(
+                start_time, end_time
+            )
+        )
+        raise ValueError(
+            "No available drift outputs found. (from {} to {}).".format(
+                start_time, end_time
+            )
+        )
 
     # produce figures
     figures = {}
     for c, c_metrics in contents.items():
         # sort by stdate to ensure correct order in graph
-        ordered_content = OrderedDict(sorted(c_metrics.items(), key=lambda t: t[0]))
+        ordered_content = OrderedDict(
+            sorted(c_metrics.items(), key=lambda t: t[0])
+        )
 
         fig_key = ""
         # environment information (alignment refined with extra spaces
@@ -672,7 +940,9 @@ def _show(datadriftdetector, start_time=datetime.min, end_time=datetime.max, log
             #            "Unregistered" if not target_dataset_info else "Registered",
             #            target_dataset_id if not target_dataset_info else target_dataset_info)
 
-        figure = _generate_plot_figure(environment, ordered_content, drift_type)
+        figure = _generate_plot_figure(
+            environment, ordered_content, drift_type
+        )
 
         figures[fig_key] = figure
 
@@ -691,7 +961,7 @@ def _generate_plot_figure(environment, ordered_content, drift_type):
     :return: matplotlib.figure.Figure
     """
     stdates = list(ordered_content.keys())
-    eddates = [v['eddate'] for v in list(ordered_content.values())]
+    eddates = [v["eddate"] for v in list(ordered_content.values())]
     drifts_train = []
     drift_contribution = {}
     distance_energy = {}
@@ -703,7 +973,9 @@ def _generate_plot_figure(environment, ordered_content, drift_type):
     columns_distance_w = []
 
     for d in stdates:
-        drifts_train.append(ordered_content[d][OUTPUT_METRIC_DRIFT_COEFFICIENT])
+        drifts_train.append(
+            ordered_content[d][OUTPUT_METRIC_DRIFT_COEFFICIENT]
+        )
         summary_contribute[d] = 0
         bottoms_contribute.append(0)
         for c in ordered_content[d][OUTPUT_METRIC_DRIFT_CONTRIBUTION].keys():
@@ -713,13 +985,27 @@ def _generate_plot_figure(environment, ordered_content, drift_type):
     for d in stdates:
         for c in columns:
             if OUTPUT_METRIC_DRIFT_CONTRIBUTION in ordered_content[d]:
-                if c not in ordered_content[d][OUTPUT_METRIC_DRIFT_CONTRIBUTION]:
-                    warnings.warn("Drift Contribution of column {} is unavailable.".format(columns.index(c)))
+                if (
+                    c
+                    not in ordered_content[d][OUTPUT_METRIC_DRIFT_CONTRIBUTION]
+                ):
+                    warnings.warn(
+                        "Drift Contribution of column {} is unavailable.".format(
+                            columns.index(c)
+                        )
+                    )
                     if c not in drift_contribution:
                         drift_contribution[c] = {}
-                    if c in ordered_content[d][OUTPUT_METRIC_DRIFT_CONTRIBUTION]:
-                        drift_contribution[c][d] = ordered_content[d][OUTPUT_METRIC_DRIFT_CONTRIBUTION][c]
-                        summary_contribute[d] += ordered_content[d][OUTPUT_METRIC_DRIFT_CONTRIBUTION][c]
+                    if (
+                        c
+                        in ordered_content[d][OUTPUT_METRIC_DRIFT_CONTRIBUTION]
+                    ):
+                        drift_contribution[c][d] = ordered_content[d][
+                            OUTPUT_METRIC_DRIFT_CONTRIBUTION
+                        ][c]
+                        summary_contribute[d] += ordered_content[d][
+                            OUTPUT_METRIC_DRIFT_CONTRIBUTION
+                        ][c]
                     else:
                         # if drift coefficient is missing on that day, set its ratio to 0.
                         drift_contribution[c][d] = 0
@@ -729,8 +1015,14 @@ def _generate_plot_figure(environment, ordered_content, drift_type):
     columns_contribution = list(drift_contribution.keys())
 
     # remove columns if distance is unavailable for all days.
-    distance_energy = {k: v for k, v in distance_energy.items() if k in columns_distance_e}
-    distnace_wasserstein = {k: v for k, v in distnace_wasserstein.items() if k in columns_distance_w}
+    distance_energy = {
+        k: v for k, v in distance_energy.items() if k in columns_distance_e
+    }
+    distnace_wasserstein = {
+        k: v
+        for k, v in distnace_wasserstein.items()
+        if k in columns_distance_w
+    }
 
     # show data drift
     width = 10
@@ -740,7 +1032,7 @@ def _generate_plot_figure(environment, ordered_content, drift_type):
     hdivid = 1
 
     # when time range is wide and stdates are actually uncontinuous, just show stdates with drifts.
-    xrange = pd.date_range(stdates[0], stdates[-1], freq='D')
+    xrange = pd.date_range(stdates[0], stdates[-1], freq="D")
     xrange = [x for x in xrange if x.date() in [y.date() for y in stdates]]
 
     # reduce x ticks if there are too many, ideally always keep 10 or 11 labels.
@@ -750,11 +1042,11 @@ def _generate_plot_figure(environment, ordered_content, drift_type):
         if zoom > 1:
             xrange = xrange[::zoom]
 
-    xlabel = 'Day'
+    xlabel = "Day"
     for d in range(len(stdates)):
         gap = eddates[d] - stdates[d]
         if gap == timedelta(7):
-            xlabel = 'Week of'
+            xlabel = "Week of"
         elif gap > timedelta(1):
             xlabel = "{} days from".format(gap.days)
 
@@ -769,9 +1061,11 @@ def _generate_plot_figure(environment, ordered_content, drift_type):
     # draw drift coefficient
     plt.sca(ax1)
     ax1.set_ylim(ymin=0, ymax=1.1)
-    plt.plot_date(stdates, drifts_train, '-g', marker='.', linewidth=0.5, markersize=5)
+    plt.plot_date(
+        stdates, drifts_train, "-g", marker=".", linewidth=0.5, markersize=5
+    )
     yvals = ax1.get_yticks()
-    ax1.set_yticklabels(['{:,.2%}'.format(v) for v in yvals])
+    ax1.set_yticklabels(["{:,.2%}".format(v) for v in yvals])
     plt.xlabel(xlabel, fontsize=16)
     plt.ylabel(Y_LABEL_PERCENTAGE, fontsize=16)
     plt.xticks(xrange, rotation=15)
@@ -786,24 +1080,35 @@ def _generate_plot_figure(environment, ordered_content, drift_type):
         # Assign color index from 4 different sections in turn to avoid similar color among adjacent columns.
         color_index = (i % 4) * 64 + (int(i / 4)) * step
         color_indexes.append(color_index)
-    colors = plt.cm.get_cmap('gist_ncar_r')
+    colors = plt.cm.get_cmap("gist_ncar_r")
 
     ax2 = plt.subplot(hdivid, wdivid, 2)
     plt.sca(ax2)
     yvals = ax2.get_yticks()
-    ax2.set_yticklabels(['{:,.2%}'.format(v) for v in yvals])
+    ax2.set_yticklabels(["{:,.2%}".format(v) for v in yvals])
     # ax2.xaxis.set_major_formatter(myFmt)
     for c in columns_contribution:
         # draw bar graph
         contribution = list(drift_contribution[c].values())
-        bar_ratio = [x / y for x, y in zip(contribution, daily_summary_contribution)]
-        ax2.bar(stdates, height=bar_ratio, bottom=bottoms_contribute, color=colors(color_indexes)[columns.index(c)])
-        bottoms_contribute = [x + y for x, y in zip(bottoms_contribute, bar_ratio)]
+        bar_ratio = [
+            x / y for x, y in zip(contribution, daily_summary_contribution)
+        ]
+        ax2.bar(
+            stdates,
+            height=bar_ratio,
+            bottom=bottoms_contribute,
+            color=colors(color_indexes)[columns.index(c)],
+        )
+        bottoms_contribute = [
+            x + y for x, y in zip(bottoms_contribute, bar_ratio)
+        ]
 
     plt.xlabel(xlabel, fontsize=16)
     plt.ylabel(Y_LABEL_PERCENTAGE, fontsize=16)
     plt.xticks(xrange, rotation=15)
     plt.title(DRIFT_CONTRIBUTION_TITLE, fontsize=(20 - font_size_adjuster))
-    plt.legend(columns_contribution, bbox_to_anchor=(1.24, 1), loc=1, prop={'size': 7})
+    plt.legend(
+        columns_contribution, bbox_to_anchor=(1.24, 1), loc=1, prop={"size": 7}
+    )
 
     return figure

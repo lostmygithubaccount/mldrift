@@ -117,7 +117,9 @@ WAIT_FOR_COMPLETION_TIMEOUT = 3600
 
 # event logger constants
 DATADRIFT_CONSTRUCTOR = "DataDrift.DataDriftDetector.Constructor"
-DATADRIFT_CREATE_FROM_DATASET = "DataDrift.DataDriftDetector.Create_From_Dataset"
+DATADRIFT_CREATE_FROM_DATASET = (
+    "DataDrift.DataDriftDetector.Create_From_Dataset"
+)
 DATADRIFT_GET = "DataDrift.DataDriftDetector.Get"
 DATADRIFT_GET_BY_NAME = "DataDrift.DataDriftDetector.Get_By_Name"
 DATADRIFT_GET_BY_ID = "DataDrift.DataDriftDetector.Get_By_Id"
@@ -143,46 +145,46 @@ COMPUTE_TARGET_PROVISIONING = "Provisioning"
 
 
 # Logging fields
-LOG_TENANT_ID = 'tenant_id'
-LOG_SUBSCRIPTION_ID = 'subscription_id'
-LOG_RESGROUP = 'resource_group'
-LOG_WS_ID = 'workspace_id'
-LOG_WS_LOCATION = 'workspace_location'
-LOG_COMPUTE_TYPE = 'compute_type'
-LOG_COMPUTE_SIZE = 'compute_size'
-LOG_COMPUTE_NODES_MIN = 'compute_nodes_min'
-LOG_COMPUTE_NODES_MAX = 'compute_nodes_max'
-LOG_IMAGE_ID = 'image_id'
-LOG_DRIFT_ID = 'dd_id'
-LOG_DRIFT_TYPE = 'dd_type'
-LOG_FREQUENCY = 'freq'
-LOG_INTERVAL = 'interval'
-LOG_SCHEDULE_STATUS = 'scheduling'
-LOG_THRESHOLD = 'threshold'
-LOG_LATENCY = 'latency'
-LOG_TOTAL_FEATURES = 'total_features'
-LOG_SERVICES = 'services'
-LOG_TRAINING_DS_ID = 'train_dataset_id'
-LOG_BASELINE_DS_ID = 'baseline_dataset_id'
-LOG_TARGET_DS_ID = 'target_dataset_id'
+LOG_TENANT_ID = "tenant_id"
+LOG_SUBSCRIPTION_ID = "subscription_id"
+LOG_RESGROUP = "resource_group"
+LOG_WS_ID = "workspace_id"
+LOG_WS_LOCATION = "workspace_location"
+LOG_COMPUTE_TYPE = "compute_type"
+LOG_COMPUTE_SIZE = "compute_size"
+LOG_COMPUTE_NODES_MIN = "compute_nodes_min"
+LOG_COMPUTE_NODES_MAX = "compute_nodes_max"
+LOG_IMAGE_ID = "image_id"
+LOG_DRIFT_ID = "dd_id"
+LOG_DRIFT_TYPE = "dd_type"
+LOG_FREQUENCY = "freq"
+LOG_INTERVAL = "interval"
+LOG_SCHEDULE_STATUS = "scheduling"
+LOG_THRESHOLD = "threshold"
+LOG_LATENCY = "latency"
+LOG_TOTAL_FEATURES = "total_features"
+LOG_SERVICES = "services"
+LOG_TRAINING_DS_ID = "train_dataset_id"
+LOG_BASELINE_DS_ID = "baseline_dataset_id"
+LOG_TARGET_DS_ID = "target_dataset_id"
 # Extra fields
-LOG_TELEMETRY_EVENT_ID = 'telemetry_event_id'
-LOG_ACTIVITY_ID = 'activity_id'
-LOG_ACTIVITY_NAME = 'activity_name'
-LOG_ACTIVITY_TYPE = 'activity_type'
-LOG_CATEGORICAL_FEATURES = 'categorical_features'
-LOG_NUMERICAL_FEATURES = 'numerical_features'
-LOG_RUN_TYPE_ = 'run_type'
-LOG_RUN_ID = 'run_id'
-LOG_PARENT_RUN_ID = 'parent_run_id'
-LOG_INPUT_STARTTIME = 'start_time'
-LOG_INPUT_ENDTIME = 'end_time'
+LOG_TELEMETRY_EVENT_ID = "telemetry_event_id"
+LOG_ACTIVITY_ID = "activity_id"
+LOG_ACTIVITY_NAME = "activity_name"
+LOG_ACTIVITY_TYPE = "activity_type"
+LOG_CATEGORICAL_FEATURES = "categorical_features"
+LOG_NUMERICAL_FEATURES = "numerical_features"
+LOG_RUN_TYPE_ = "run_type"
+LOG_RUN_ID = "run_id"
+LOG_PARENT_RUN_ID = "parent_run_id"
+LOG_INPUT_STARTTIME = "start_time"
+LOG_INPUT_ENDTIME = "end_time"
 # For Telemetry logging
-LOG_COMPONENT = 'data-drift'
-LOG_ENV = 'log_env'
-LOG_ENV_SDK = 'sdk client'
-LOG_ENV_PIPELINE = 'pipeline job'
+LOG_COMPONENT = "data-drift"
+LOG_ENV = "log_env"
+LOG_ENV_SDK = "sdk client"
+LOG_ENV_PIPELINE = "pipeline job"
 
-DEFAULT_DOMAIN_NAME = 'https://ml.azure.com'
-MOONCAKE_DOMAIN_NAME = 'https://studio.ml.azure.cn'
-MOONCAKE_REGION = 'chinaeast2'
+DEFAULT_DOMAIN_NAME = "https://ml.azure.com"
+MOONCAKE_DOMAIN_NAME = "https://studio.ml.azure.cn"
+MOONCAKE_REGION = "chinaeast2"

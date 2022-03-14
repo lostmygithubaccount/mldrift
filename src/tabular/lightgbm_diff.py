@@ -10,11 +10,20 @@ import sklearn.model_selection
 import json
 import copy
 from datetime import datetime
-from ._utils.constants import METRIC_STATISTICAL_DISTANCE_ENERGY, \
-    METRIC_STATISTICAL_DISTANCE_WASSERSTEIN, METRIC_TYPE, METRIC_SCHEMA_VERSION_CUR, \
-    COLUMN_NAME, OUTPUT_METRIC_DRIFT_COEFFICIENT, OUTPUT_METRIC_DRIFT_CONTRIBUTION, \
-    DEBUG_DATASHIFT_MCC_TRAIN, DEBUG_DATASHIFT_MCC_TEST, DEBUG_DATASHIFT_MCC_ALL, \
-    SCORING_DATE, PIPELINE_START_TIME
+from ._utils.constants import (
+    METRIC_STATISTICAL_DISTANCE_ENERGY,
+    METRIC_STATISTICAL_DISTANCE_WASSERSTEIN,
+    METRIC_TYPE,
+    METRIC_SCHEMA_VERSION_CUR,
+    COLUMN_NAME,
+    OUTPUT_METRIC_DRIFT_COEFFICIENT,
+    OUTPUT_METRIC_DRIFT_CONTRIBUTION,
+    DEBUG_DATASHIFT_MCC_TRAIN,
+    DEBUG_DATASHIFT_MCC_TEST,
+    DEBUG_DATASHIFT_MCC_ALL,
+    SCORING_DATE,
+    PIPELINE_START_TIME,
+)
 from enum import Enum
 from scipy.stats import energy_distance
 from scipy.stats import wasserstein_distance
@@ -24,10 +33,13 @@ def get_distributions(pd_dataset, decimal=3):
     distributions = []
 
     for column in pd_dataset:
-        binlabel, weight = np.unique(np.around(pd_dataset[column].values, decimal), return_counts=True)
+        binlabel, weight = np.unique(
+            np.around(pd_dataset[column].values, decimal), return_counts=True
+        )
         distributions.append(Distribution(column, binlabel, weight))
 
     return distributions
+
 
 class Distribution:
     """Class represents distribution of a pandas data frame."""
@@ -79,7 +91,13 @@ class Metric:
     :type schema_version: str
     """
 
-    def __init__(self, name, value, extended_properties, schema_version=METRIC_SCHEMA_VERSION_CUR):
+    def __init__(
+        self,
+        name,
+        value,
+        extended_properties,
+        schema_version=METRIC_SCHEMA_VERSION_CUR,
+    ):
         """Metric constructor.
 
         :param name: The name of the metric.
@@ -95,7 +113,9 @@ class Metric:
         :rtype: Metric
         """
         if name is None or value is None or extended_properties is None:
-            raise ValueError("name, value and extended_properties must not be None")
+            raise ValueError(
+                "name, value and extended_properties must not be None"
+            )
 
         if not isinstance(extended_properties, dict):
             raise TypeError("extended_properties must be dictionary type")
@@ -109,7 +129,10 @@ class Metric:
         self.extended_properties = extended_properties
 
     def get_extended_properties(self):
-        datetime_string_formats = ["%Y-%m-%dT%H:%M:%S.%fZ", "%Y-%m-%dT%H:%M:%SZ"]
+        datetime_string_formats = [
+            "%Y-%m-%dT%H:%M:%S.%fZ",
+            "%Y-%m-%dT%H:%M:%SZ",
+        ]
         export_ep = copy.deepcopy(self.extended_properties)
         datetime_keys = [SCORING_DATE, PIPELINE_START_TIME]
         for k in datetime_keys:
@@ -133,8 +156,12 @@ class Metric:
     def validate_extended_properties_type(self, key, value):
         if not isinstance(key, str):
             raise TypeError("extended_properties key must be string type")
-        if not isinstance(value, (int, float, str, bool, type(None), datetime)):
-            raise TypeError("extended_properties value must be python built in type")
+        if not isinstance(
+            value, (int, float, str, bool, type(None), datetime)
+        ):
+            raise TypeError(
+                "extended_properties value must be python built in type"
+            )
 
     def __str__(self):
         return json.dumps(self, default=lambda o: o.__dict__)
@@ -146,8 +173,7 @@ class Metric:
 class DataDiff:
     """Class represents data diff service."""
 
-    def __init__(self,
-                 base_dataset, diff_dataset):
+    def __init__(self, base_dataset, diff_dataset):
         """Datadiff constructor.
 
         :param base_dataset: Dataframe of dataset for diff
@@ -157,14 +183,20 @@ class DataDiff:
         :return: A DataDiff object
         :rtype: DataDiff
         """
-        # hack here 
+        # hack here
         # verify input dataset has same columns
-        if (base_dataset is None or diff_dataset is None):
+        if base_dataset is None or diff_dataset is None:
             raise ValueError("Inputs cannot be None")
-        if not DataDiff._is_dataframe_columns_equal(base_dataset, diff_dataset):
-            raise AssertionError("Input datasets do not share identical columns")
+        if not DataDiff._is_dataframe_columns_equal(
+            base_dataset, diff_dataset
+        ):
+            raise AssertionError(
+                "Input datasets do not share identical columns"
+            )
         if not DataDiff._is_dataframe_dtypes_supported(base_dataset):
-            raise AssertionError("Input data contains unsupported datatype column")
+            raise AssertionError(
+                "Input data contains unsupported datatype column"
+            )
 
         base_distributions = get_distributions(base_dataset)
         diff_distributions = get_distributions(diff_dataset)
@@ -183,7 +215,15 @@ class DataDiff:
         :return: List of string
         :rtype: list(str)
         """
-        return ['int16', 'int32', 'int64', 'float16', 'float32', 'float64', 'category']
+        return [
+            "int16",
+            "int32",
+            "int64",
+            "float16",
+            "float32",
+            "float64",
+            "category",
+        ]
 
     @staticmethod
     def is_supported_dtype(dtype):
@@ -214,7 +254,7 @@ class DataDiff:
             (OUTPUT_METRIC_DRIFT_COEFFICIENT, MetricType.dataset.name),
             (OUTPUT_METRIC_DRIFT_CONTRIBUTION, MetricType.column.name),
             (METRIC_STATISTICAL_DISTANCE_ENERGY, MetricType.column.name),
-            (METRIC_STATISTICAL_DISTANCE_WASSERSTEIN, MetricType.column.name)
+            (METRIC_STATISTICAL_DISTANCE_WASSERSTEIN, MetricType.column.name),
         ]
 
         return metrics_list
@@ -235,16 +275,20 @@ class DataDiff:
         column_list2 = []
 
         for i, v in df1.dtypes.iteritems():
-            column_list1.append("{}_{}".format(i, DataDiff._get_generic_type(v)))
+            column_list1.append(
+                "{}_{}".format(i, DataDiff._get_generic_type(v))
+            )
 
         for i, v in df2.dtypes.iteritems():
-            column_list2.append("{}_{}".format(i, DataDiff._get_generic_type(v)))
+            column_list2.append(
+                "{}_{}".format(i, DataDiff._get_generic_type(v))
+            )
 
         return set(column_list1) == set(column_list2)
 
     @staticmethod
     def _get_generic_type(str):
-        if str in ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']:
+        if str in ["int16", "int32", "int64", "float16", "float32", "float64"]:
             return "numeric"
         else:
             return str
@@ -288,8 +332,9 @@ class DataDiff:
         return energy_distance(x, y, x_weight, y_weight)
 
     @staticmethod
-    def get_nicolo_datashift_detection(X1, X2,
-                                       learner=lightgbm.LGBMClassifier):
+    def get_nicolo_datashift_detection(
+        X1, X2, learner=lightgbm.LGBMClassifier
+    ):
         """Run nicolo datashift detection.
 
         :param X1: Dataframe 1 for diff
@@ -319,8 +364,8 @@ class DataDiff:
         target = np.concatenate((target1, target2), 0)
 
         sss = sklearn.model_selection.StratifiedShuffleSplit(
-            n_splits=1,
-            test_size=0.5)
+            n_splits=1, test_size=0.5
+        )
 
         for train, test in sss.split(data, target):
             clf1 = learner(n_jobs=-1)
@@ -331,17 +376,19 @@ class DataDiff:
 
             test_preds = clf1.predict(data.iloc[test])
             test_mcc = sklearn.metrics.matthews_corrcoef(
-                target[test],
-                test_preds)
+                target[test], test_preds
+            )
 
             train_preds = clf1.predict(data.iloc[train])
             train_mcc = sklearn.metrics.matthews_corrcoef(
-                target[train],
-                train_preds)
+                target[train], train_preds
+            )
 
         fea_imp_dict = {}
         for index in range(len(clf1.feature_importances_)):
-            fea_imp_dict[data.columns.values[index]] = clf1.feature_importances_[index]
+            fea_imp_dict[
+                data.columns.values[index]
+            ] = clf1.feature_importances_[index]
 
         return train_mcc, test_mcc, all_mcc, fea_imp_dict, clf1
 
@@ -357,15 +404,20 @@ class DataDiff:
         """
         metrics = []
 
-        train_mcc, test_mcc, all_mcc, feature_importances, model = \
-            DataDiff.get_nicolo_datashift_detection(X1, X2)
+        (
+            train_mcc,
+            test_mcc,
+            all_mcc,
+            feature_importances,
+            model,
+        ) = DataDiff.get_nicolo_datashift_detection(X1, X2)
 
         self.model_dict["ds_model"] = model
 
         mtx = Metric(
             OUTPUT_METRIC_DRIFT_COEFFICIENT,
             test_mcc,
-            {METRIC_TYPE: MetricType.dataset.name}
+            {METRIC_TYPE: MetricType.dataset.name},
         )
 
         mtx.extended_properties.update({DEBUG_DATASHIFT_MCC_TRAIN: train_mcc})
@@ -374,19 +426,19 @@ class DataDiff:
         metrics.append(mtx)
 
         for key, value in feature_importances.items():
-            metrics.append(Metric(
-                OUTPUT_METRIC_DRIFT_CONTRIBUTION,
-                value,
-                {
-                    METRIC_TYPE: MetricType.column.name,
-                    COLUMN_NAME: key
-                }
-            ))
+            metrics.append(
+                Metric(
+                    OUTPUT_METRIC_DRIFT_CONTRIBUTION,
+                    value,
+                    {METRIC_TYPE: MetricType.column.name, COLUMN_NAME: key},
+                )
+            )
 
         return metrics
 
-    def get_statistical_distance_metrics(self, base_distributions,
-                                         diff_distributions):
+    def get_statistical_distance_metrics(
+        self, base_distributions, diff_distributions
+    ):
         """Get distance metrics.
 
         Get all statistical distance metrics for all columns in input
@@ -406,31 +458,30 @@ class DataDiff:
 
             d_d = [d for d in diff_distributions if d.name == b_d.name][0]
 
-            metrics.append(Metric(
-                METRIC_STATISTICAL_DISTANCE_WASSERSTEIN,
-                DataDiff.get_wasserstein_distance(
-                    b_d.binlabel,
-                    d_d.binlabel,
-                    b_d.weight,
-                    d_d.weight),
-
-                {
-                    METRIC_TYPE: MetricType.column.name,
-                    COLUMN_NAME: b_d.name
-                }
-            ))
-            metrics.append(Metric(
-                METRIC_STATISTICAL_DISTANCE_ENERGY,
-                DataDiff.get_energy_distance(
-                    b_d.binlabel,
-                    d_d.binlabel,
-                    b_d.weight,
-                    d_d.weight),
-                {
-                    METRIC_TYPE: MetricType.column.name,
-                    COLUMN_NAME: b_d.name
-                }
-            ))
+            metrics.append(
+                Metric(
+                    METRIC_STATISTICAL_DISTANCE_WASSERSTEIN,
+                    DataDiff.get_wasserstein_distance(
+                        b_d.binlabel, d_d.binlabel, b_d.weight, d_d.weight
+                    ),
+                    {
+                        METRIC_TYPE: MetricType.column.name,
+                        COLUMN_NAME: b_d.name,
+                    },
+                )
+            )
+            metrics.append(
+                Metric(
+                    METRIC_STATISTICAL_DISTANCE_ENERGY,
+                    DataDiff.get_energy_distance(
+                        b_d.binlabel, d_d.binlabel, b_d.weight, d_d.weight
+                    ),
+                    {
+                        METRIC_TYPE: MetricType.column.name,
+                        COLUMN_NAME: b_d.name,
+                    },
+                )
+            )
 
         return metrics
 
@@ -441,12 +492,16 @@ class DataDiff:
         :rtype: list[Metrics]
         """
         metrics = []
-        metrics.extend(self.get_nicolo_datashift_metrics(
-            self.base_dataset,
-            self.diff_dataset))
-        metrics.extend(self.get_statistical_distance_metrics(
-            self.base_distributions,
-            self.diff_distributions))
+        metrics.extend(
+            self.get_nicolo_datashift_metrics(
+                self.base_dataset, self.diff_dataset
+            )
+        )
+        metrics.extend(
+            self.get_statistical_distance_metrics(
+                self.base_distributions, self.diff_distributions
+            )
+        )
 
         self.metrics = metrics
         return metrics
