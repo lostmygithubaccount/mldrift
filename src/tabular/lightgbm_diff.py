@@ -1,7 +1,3 @@
-# ---------------------------------------------------------
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# ---------------------------------------------------------
-
 """Defines the data diff logic between two datasets, relies on the DataSets API."""
 
 import lightgbm
@@ -23,6 +19,15 @@ from enum import Enum
 from scipy.stats import energy_distance
 from scipy.stats import wasserstein_distance
 
+# TODO - fix this hack
+def get_distributions(pd_dataset, decimal=3):
+    distributions = []
+
+    for column in pd_dataset:
+        binlabel, weight = np.unique(np.around(pd_dataset[column].values, decimal), return_counts=True)
+        distributions.append(Distribution(column, binlabel, weight))
+
+    return distributions
 
 class Distribution:
     """Class represents distribution of a pandas data frame."""
@@ -142,30 +147,27 @@ class DataDiff:
     """Class represents data diff service."""
 
     def __init__(self,
-                 base_dataset, diff_dataset,
-                 base_distributions, diff_distributions):
+                 base_dataset, diff_dataset):
         """Datadiff constructor.
 
         :param base_dataset: Dataframe of dataset for diff
         :type base_dataset: pandas.DataFrame
         :param diff_dataset: Dataframe of dataset for diff
         :type diff_dataset: pandas.DataFrame
-        :param base_distributions: A list of distribution object for
-        individual numeric column in dataset
-        :type base_distributions: list[Distribution]
-        :param diff_distributions: A list of distribution object for
-        individual numeric column in dataset
-        :type diff_distributions: list[Distribution]
         :return: A DataDiff object
         :rtype: DataDiff
         """
+        # hack here 
         # verify input dataset has same columns
-        if (base_dataset is None or diff_dataset is None or base_distributions is None or diff_distributions is None):
+        if (base_dataset is None or diff_dataset is None):
             raise ValueError("Inputs cannot be None")
         if not DataDiff._is_dataframe_columns_equal(base_dataset, diff_dataset):
             raise AssertionError("Input datasets do not share identical columns")
         if not DataDiff._is_dataframe_dtypes_supported(base_dataset):
             raise AssertionError("Input data contains unsupported datatype column")
+
+        base_distributions = get_distributions(base_dataset)
+        diff_distributions = get_distributions(diff_dataset)
 
         self.base_dataset = base_dataset
         self.diff_dataset = diff_dataset
