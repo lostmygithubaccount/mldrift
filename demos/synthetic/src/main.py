@@ -1,6 +1,5 @@
 # imports
 import os
-import mlflow
 import argparse
 
 import pandas as pd
@@ -30,11 +29,10 @@ def main(args):
     print("running data diff...")
     diff = DataDiff(baseline, test)
 
-    with mlflow.start_run():
-        diff.run()
+    diff.run()
 
     # return None
-    pritn("done, exiting...")
+    print("done, exiting...")
     return None
 
 
