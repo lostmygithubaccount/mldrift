@@ -1,0 +1,11 @@
+numpy
+pandas
+scikit-learn
+lightgbm
+
+matplotlib
+
+mlflow
+azureml-mlflow
+
+mldrift

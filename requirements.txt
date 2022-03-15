@@ -1,7 +1,0 @@
-# data
-numpy
-pandas
-
-# ML
-scikit-learn
-lightgbm

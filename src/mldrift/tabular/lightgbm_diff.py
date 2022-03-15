@@ -1,5 +1,6 @@
 """Defines the data diff logic between two datasets, relies on the DataSets API."""
 
+import mlflow
 import lightgbm
 import numpy as np
 import pandas as pd
@@ -492,6 +493,9 @@ class DataDiff:
         :return: metrics
         :rtype: list[Metrics]
         """
+        # autolog for good measure
+        mlflow.lightgbm.autolog()
+
         metrics = []
         metrics.extend(
             self.get_nicolo_datashift_metrics(
@@ -505,4 +509,18 @@ class DataDiff:
         )
 
         self.metrics = metrics
+
+        # log to mlflow
+        # this is probably not efficient
+        # list comprehension for the comedy
+        [
+            mlflow.log_metric(metric.name, metric.value)
+            if "column" not in metric.extended_properties["metric_type"]
+            else mlflow.log_metric(
+                metric.extended_properties["column_name"] + "_" + metric.name,
+                metric.value,
+            )
+            for metric in metrics
+        ]
+
         return metrics
