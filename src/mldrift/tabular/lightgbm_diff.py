@@ -494,7 +494,7 @@ class DataDiff:
         :rtype: list[Metrics]
         """
         # autolog for good measure
-        # mlflow.lightgbm.autolog()
+        mlflow.lightgbm.autolog()
 
         metrics = []
         metrics.extend(
